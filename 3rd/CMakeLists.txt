@@ -50,10 +50,12 @@ target_include_directories(LuaGlue SYSTEM INTERFACE LuaGlue/include)
 
 find_package(Lua)
 if(LUA_FOUND)
+    message(STATUS "Found system Lua")
     add_library(Lua INTERFACE)
     target_include_directories(Lua SYSTEM INTERFACE ${LUA_INCLUDE_DIR})
     target_link_libraries(Lua INTERFACE ${LUA_LIBRARIES})
 else()
+    message(STATUS "System Lua NOT found, statically linking Lua")
     add_library(Lua STATIC EXCLUDE_FROM_ALL
         lua/lapi.c
         lua/lapi.h
