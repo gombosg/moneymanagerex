@@ -29,12 +29,21 @@ target_include_directories(RapidJSON SYSTEM INTERFACE
 # lunasvg
  set(CMAKE_CXX_STANDARD 14)
  set(CMAKE_C_STANDARD 11)
- add_library(lunasvg STATIC)
 
- add_subdirectory(lunasvg/include)
- add_subdirectory(lunasvg/source)
- add_subdirectory(lunasvg/3rdparty/software)
- add_subdirectory(lunasvg/3rdparty/plutovg)
+find_library(LUNASVG lunasvg)
+if(LUNASVG)
+    message(STATUS "Found system lunasvg")
+    add_library(lunasvg SHARED IMPORTED)
+    SET(LUNASVG_SYSTEM PARENT_SCOPE)
+    target_link_libraries(lunasvg)
+else()
+    add_library(lunasvg STATIC)
+
+    add_subdirectory(lunasvg/include)
+    add_subdirectory(lunasvg/source)
+    add_subdirectory(lunasvg/3rdparty/software)
+    add_subdirectory(lunasvg/3rdparty/plutovg)
+endif()
 
 add_library(LuaGlue INTERFACE)
 target_include_directories(LuaGlue SYSTEM INTERFACE LuaGlue/include)

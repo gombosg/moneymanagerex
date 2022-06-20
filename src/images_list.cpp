@@ -33,7 +33,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <wx/fs_mem.h>
 #include <wx/mstream.h>
 #include <wx/tokenzr.h>
-#include "../3rd/lunasvg/include/lunasvg.h"
+
+#if LUNASVG_SYSTEM
+    #include <lunasvg.h>
+#else
+    #include "../3rd/lunasvg/include/lunasvg.h"
+#endif
 
 // SVG filename in Zip, the PNG enum to which it relates, whether to recolor background
 static const std::map<std::string, std::pair<int, bool>> iconName2enum = {
@@ -44,7 +49,7 @@ static const std::map<std::string, std::pair<int, bool>> iconName2enum = {
     { "CATEGORY.svg", { CATEGORY, false } },
     { "PAYEE.svg", { PAYEE, false } },
     { "CURR.svg", { CURR, false } },
-    { "FILTER.svg", { FILTER, false } }, 
+    { "FILTER.svg", { FILTER, false } },
     { "GRM.svg", { GRM, false } },
     { "OPTIONS.svg", { OPTIONS, false } },
     { "NEW_TRX.svg", { NEW_TRX, false } },
@@ -74,7 +79,7 @@ static const std::map<std::string, std::pair<int, bool>> iconName2enum = {
     { "RECURRING.svg", { RECURRING, true } },
     { "BUDGET.svg", { BUDGET, true } },
     { "PIE_CHART.svg", { PIE_CHART, true } },
-     
+
     // Status
     { "UNRECONCILED.svg", { UNRECONCILED, false } },
     { "RECONCILED.svg", { RECONCILED, false } },
@@ -162,12 +167,12 @@ const std::map<int, std::tuple<wxString, wxString, bool> > metaDataTrans()
     md[COLOR_LISTFUTURE]       = std::make_tuple("/colors/listFutureDate",      "#7486A8", false);
     md[COLOR_HTMLPANEL_BACK]   = std::make_tuple("/colors/htmlPanel/background", "",       false);
     md[COLOR_HTMLPANEL_FORE]   = std::make_tuple("/colors/htmlPanel/foreColor",  "",       false);
-    md[COLOR_REPORT_ALTROW]    = std::make_tuple("/colors/reports/altRow",      "#F5F5F5", false);    
+    md[COLOR_REPORT_ALTROW]    = std::make_tuple("/colors/reports/altRow",      "#F5F5F5", false);
     md[COLOR_REPORT_CREDIT]    = std::make_tuple("/colors/reports/credit",      "#50B381", false);
     md[COLOR_REPORT_DEBIT]     = std::make_tuple("/colors/reports/debit",       "#F75E51", false);
     md[COLOR_REPORT_DELTA]     = std::make_tuple("/colors/reports/delta",       "#008FFB", false);
     md[COLOR_REPORT_PERF]      = std::make_tuple("/colors/reports/perf",       "#FF6307", false);
-    md[COLOR_REPORT_FORECOLOR] = std::make_tuple("/colors/reports/foreColor",   "#373D3F", false);  
+    md[COLOR_REPORT_FORECOLOR] = std::make_tuple("/colors/reports/foreColor",   "#373D3F", false);
     md[COLOR_REPORT_PALETTE]   = std::make_tuple("/colors/reports/palette",  "#008FFB "
             "#00E396 #FEB019 #FF4560 #775DD0 #3F51B5 #03A9F4 #4cAF50 #F9CE1D #FF9800 "
             "#33B2DF #546E7A #D4526E #13D8AA #A5978B #4ECDC4 #81D4FA #546E7A #FD6A6A "
@@ -274,7 +279,7 @@ bool processThemes(wxString themeDir, wxString myTheme, bool metaPhase)
     wxDir directory(themeDir);
     wxLogDebug("-- Metadata Phase?: %s", metaPhase ? "YES" : "NO");
     wxLogDebug ("Scanning [%s] for Theme [%s]", themeDir, myTheme);
-    if ( !directory.IsOpened() ) return false;  
+    if ( !directory.IsOpened() ) return false;
 
     bool themeMatched = false;
     wxString filename;
@@ -314,7 +319,7 @@ bool processThemes(wxString themeDir, wxString myTheme, bool metaPhase)
 
                 if (fileEntryName.IsDir())
                     continue;   // We can skip directories
-                
+
                 if (metaPhase)  // For this phase we are only interested in the metadata and checking if theme has dark-mode components
                 {
                     if (fileName == "_theme.json")
@@ -343,8 +348,8 @@ bool processThemes(wxString themeDir, wxString myTheme, bool metaPhase)
                     else if (!darkMode && fileNameString.StartsWith("dark-"))
                         continue;
 
-                // Remove dark mode prefix 
-                if (darkFound && darkMode) 
+                // Remove dark mode prefix
+                if (darkFound && darkMode)
                     fileName = fileName.substr(5);
 
                 // If the file does not match an icon file then just load into VFS / tmp
@@ -416,7 +421,7 @@ bool checkThemeContents(wxArrayString *filesinTheme)
 
     // Check for required files
     const wxString neededFiles[] = { "master.css", "" };
-    
+
     for (int i = 0; !neededFiles[i].IsEmpty(); i++)
     {
         wxString realName = (darkFound && darkMode) ? neededFiles[i].AfterLast('-') : neededFiles[i];
@@ -478,12 +483,12 @@ void reverttoDefaultTheme()
     Model_Setting::instance().SetTheme("default");
     darkFound = false;
     processThemes(mmex::getPathResource(mmex::THEMESDIR), Model_Setting::instance().Theme(), true);
-    processThemes(mmex::getPathResource(mmex::THEMESDIR), Model_Setting::instance().Theme(), false);  
+    processThemes(mmex::getPathResource(mmex::THEMESDIR), Model_Setting::instance().Theme(), false);
 }
 
 void LoadTheme()
 {
-    darkMode = ( (mmex::isDarkMode() && (Option::THEME_MODE::AUTO == Option::instance().getThemeMode())) 
+    darkMode = ( (mmex::isDarkMode() && (Option::THEME_MODE::AUTO == Option::instance().getThemeMode()))
                     || (Option::THEME_MODE::DARK == Option::instance().getThemeMode()));
     filesInVFS = new wxArrayString();
 
@@ -500,7 +505,7 @@ void LoadTheme()
                 , Model_Setting::instance().Theme()), _("Warning"), wxOK | wxICON_WARNING);
             reverttoDefaultTheme();
         }
-    
+
     if (!checkThemeContents(filesInVFS.get()))
     {
         wxMessageBox(wxString::Format(_("Theme %s has missing items and is incompatible. Reverting to default theme"), Model_Setting::instance().Theme()), _("Warning"), wxOK | wxICON_WARNING);
@@ -512,7 +517,7 @@ void LoadTheme()
                 , _("Error"), wxOK | wxICON_ERROR);
             exit(EXIT_FAILURE);
         }
-    } 
+    }
 }
 
 const wxString mmThemeMetaString(int ref)
