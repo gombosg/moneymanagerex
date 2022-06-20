@@ -156,7 +156,7 @@ target_include_directories(HTML-template SYSTEM INTERFACE cgitemplate)
 
 find_package(PkgConfig)
 if(PkgConfig_FOUND)
-    PKG_SEARCH_MODULE(wxSQLite3 QUIET wxsqlite3-3.0 wxsqlite3 wxsqlite>=3)
+    PKG_SEARCH_MODULE(wxSQLite3 QUIET wxsqlite3-3.1 wxsqlite3-3.0 wxsqlite3 wxsqlite>=3)
 endif()
 
 if(wxSQLite3_FOUND)
@@ -170,6 +170,7 @@ if(wxSQLite3_FOUND)
     set(WXSQLITE3_HAVE_CODEC ${WXSQLITE3_HAVE_CODEC} CACHE INTERNAL "Have symbol ${SYMBOL}")
 
     if(WXSQLITE3_HAVE_CODEC OR MMEX_ENCRYPTION_OPTIONAL)
+        find_package(SQLite3 REQUIRED)
         add_library(wxSQLite3 INTERFACE)
         target_include_directories(wxSQLite3 SYSTEM INTERFACE ${wxSQLite3_INCLUDE_DIRS})
         target_link_libraries(wxSQLite3 INTERFACE ${wxSQLite3_LIBRARIES} wxWidgets)
