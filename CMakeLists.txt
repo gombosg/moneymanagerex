@@ -400,8 +400,6 @@ else()
 endif()
 
 
-add_subdirectory(3rd/fmt)
-
 # --------- Collect sources and targets ---------
 set(MMEX_BIN_DIR bin)
 
@@ -428,7 +426,7 @@ add_subdirectory(src)
 
 function(create_zip output_file input_files working_dir)
     add_custom_command(
-        COMMAND ${CMAKE_COMMAND} -E tar "cf" "${output_file}" --format=zip -- ${input_files} 
+        COMMAND ${CMAKE_COMMAND} -E tar "cf" "${output_file}" --format=zip -- ${input_files}
         WORKING_DIRECTORY "${working_dir}"
         OUTPUT  "${output_file}"
         DEPENDS ${input_files}
@@ -461,9 +459,9 @@ GETSUBDIRS(GRMGROUPDIR "${PROJECT_SOURCE_DIR}/general-reports/packages/")
 FOREACH(GRMGROUP ${GRMGROUPDIR})
     GETSUBDIRS(GRMDIR "${PROJECT_SOURCE_DIR}/general-reports/packages/${GRMGROUP}/")
     FOREACH(GRMNAME ${GRMDIR})
-        set(GRM_DEFAULT_FILES   "${PROJECT_SOURCE_DIR}/general-reports/packages/${GRMGROUP}/${GRMNAME}/description.txt" 
-                                "${PROJECT_SOURCE_DIR}/general-reports/packages/${GRMGROUP}/${GRMNAME}/luacontent.lua" 
-                                "${PROJECT_SOURCE_DIR}/general-reports/packages/${GRMGROUP}/${GRMNAME}/sqlcontent.sql" 
+        set(GRM_DEFAULT_FILES   "${PROJECT_SOURCE_DIR}/general-reports/packages/${GRMGROUP}/${GRMNAME}/description.txt"
+                                "${PROJECT_SOURCE_DIR}/general-reports/packages/${GRMGROUP}/${GRMNAME}/luacontent.lua"
+                                "${PROJECT_SOURCE_DIR}/general-reports/packages/${GRMGROUP}/${GRMNAME}/sqlcontent.sql"
                                 "${PROJECT_SOURCE_DIR}/general-reports/packages/${GRMGROUP}/${GRMNAME}/template.htt"
         )
         create_zip("${CMAKE_CURRENT_BINARY_DIR}/${GRMGROUP}-${GRMNAME}.grm" "${GRM_DEFAULT_FILES}" "${PROJECT_SOURCE_DIR}/general-reports/packages/${GRMGROUP}/${GRMNAME}/")
@@ -597,8 +595,8 @@ install(FILES
 # Resources
 install(FILES
     3rd/ChartNew.js/ChartNew.js
-    3rd/ChartNew.js/Add-ins/format.js 
-    3rd/apexcharts.js/dist/apexcharts.min.js  
+    3rd/ChartNew.js/Add-ins/format.js
+    3rd/apexcharts.js/dist/apexcharts.min.js
     resources/ie-polyfill/polyfill.min.js
     resources/ie-polyfill/classlist.min.js
     resources/ie-polyfill/resize-observer.js
@@ -641,7 +639,7 @@ endif()
 if(CMAKE_PREFIX_PATH)
     file(TO_CMAKE_PATH "${CMAKE_PREFIX_PATH}/bin/libcurl.dll" CURL_LIBPATH)
     if(EXISTS "${CURL_LIBPATH}")
-        install(FILES 
+        install(FILES
             "${CURL_LIBPATH}"
             DESTINATION "${MMEX_BIN_DIR}")
     endif()
