@@ -33,12 +33,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <wx/fs_mem.h>
 #include <wx/mstream.h>
 #include <wx/tokenzr.h>
-
-#ifdef LUNASVG_SYSTEM
-    #include <lunasvg.h>
-#else
-    #include "../3rd/lunasvg/include/lunasvg.h"
-#endif
+#include "../3rd/lunasvg/include/lunasvg.h"
 
 // SVG filename in Zip, the PNG enum to which it relates, whether to recolor background
 static const std::map<std::string, std::pair<int, bool>> iconName2enum = {
