@@ -64,6 +64,8 @@ project(MMEX VERSION ${MMEX_VERSION})
 option(MMEX_PORTABLE_INSTALL "Include an empty mmexini.db3 file in the Windows installation" OFF)
 option(MMEX_ENCRYPTION_OPTIONAL "Build even if encryption is not supported by wxsqlite library" OFF)
 
+option(LUNASVG_SYSTEM "Use lunasvg provided by system" OFF)
+
 # Name of the resulted executable binary
 set(MMEX_EXE mmex)
 

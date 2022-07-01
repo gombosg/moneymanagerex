@@ -34,7 +34,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <wx/mstream.h>
 #include <wx/tokenzr.h>
 
-#if LUNASVG_SYSTEM
+#ifdef LUNASVG_SYSTEM
     #include <lunasvg.h>
 #else
     #include "../3rd/lunasvg/include/lunasvg.h"
