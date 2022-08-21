@@ -63,7 +63,7 @@ mmPayeeDialog::mmPayeeDialog(wxWindow *parent, bool payee_choose, const wxString
     , m_sortReverse (false)
 {
     ColName_[PAYEE_NAME] = _("Name");
-    ColName_[PAYEE_CATEGORY]  = (Option::instance().TransCategorySelection() == Option::LASTUSED) ?
+    ColName_[PAYEE_CATEGORY]  = (Option::instance().TransCategorySelectionNonTransfer() == Option::LASTUSED) ?
                                 _("Last Used Category") : _("Default Category");
 
     this->SetFont(parent->GetFont());
@@ -184,8 +184,9 @@ void mmPayeeDialog::fillControls()
         std::stable_sort(payees.begin(), payees.end(), [] (Model_Payee::Data x, Model_Payee::Data y)
         {
             return(
-                Model_Category::instance().full_name(x.CATEGID, x.SUBCATEGID).
-                    CmpNoCase(Model_Category::instance().full_name(y.CATEGID, y.SUBCATEGID)) < 0
+                CaseInsensitiveLocaleCmp(
+                    Model_Category::instance().full_name(x.CATEGID, x.SUBCATEGID)
+                    , Model_Category::instance().full_name(y.CATEGID, y.SUBCATEGID)) < 0
             ); 
         });
     }
@@ -222,7 +223,7 @@ void mmPayeeDialog::OnListItemActivated(wxListEvent& WXUNUSED(event))
 }
 void mmPayeeDialog::OnTextChanged(wxCommandEvent& event)
 {
-    m_maskStr = event.GetString();
+    m_maskStr = event.GetString().Prepend("*");
     fillControls();
 }
 
@@ -393,31 +394,30 @@ void mmPayeeDialog::OnItemRightClick(wxListEvent& event)
 
     Model_Payee::Data* payee = Model_Payee::instance().get(m_payee_id);
 
-    wxMenu* mainMenu = new wxMenu;
-    if (payee) mainMenu->SetTitle(payee->PAYEENAME);
-    mainMenu->Append(new wxMenuItem(mainMenu, MENU_DEFINE_CATEGORY, _("Define Category")));
-    if (!payee) mainMenu->Enable(MENU_DEFINE_CATEGORY, false);
-    mainMenu->Append(new wxMenuItem(mainMenu, MENU_REMOVE_CATEGORY, _("Remove Category")));
-    if (!payee) mainMenu->Enable(MENU_REMOVE_CATEGORY, false);
-    mainMenu->AppendSeparator();
+    wxMenu mainMenu;
+    if (payee) mainMenu.SetTitle(payee->PAYEENAME);
+    mainMenu.Append(new wxMenuItem(&mainMenu, MENU_DEFINE_CATEGORY, _("Define Category")));
+    if (!payee) mainMenu.Enable(MENU_DEFINE_CATEGORY, false);
+    mainMenu.Append(new wxMenuItem(&mainMenu, MENU_REMOVE_CATEGORY, _("Remove Category")));
+    if (!payee) mainMenu.Enable(MENU_REMOVE_CATEGORY, false);
+    mainMenu.AppendSeparator();
 
-    mainMenu->Append(new wxMenuItem(mainMenu, MENU_NEW_PAYEE, _("&Add ")));
-    mainMenu->Append(new wxMenuItem(mainMenu, MENU_EDIT_PAYEE, _("&Edit ")));
-    if (!payee) mainMenu->Enable(MENU_EDIT_PAYEE, false);
-    mainMenu->Append(new wxMenuItem(mainMenu, MENU_DELETE_PAYEE, _("&Remove ")));
-    if (!payee || Model_Payee::is_used(m_payee_id)) mainMenu->Enable(MENU_DELETE_PAYEE, false);
-    mainMenu->AppendSeparator();
+    mainMenu.Append(new wxMenuItem(&mainMenu, MENU_NEW_PAYEE, _("&Add ")));
+    mainMenu.Append(new wxMenuItem(&mainMenu, MENU_EDIT_PAYEE, _("&Edit ")));
+    if (!payee) mainMenu.Enable(MENU_EDIT_PAYEE, false);
+    mainMenu.Append(new wxMenuItem(&mainMenu, MENU_DELETE_PAYEE, _("&Remove ")));
+    if (!payee || Model_Payee::is_used(m_payee_id)) mainMenu.Enable(MENU_DELETE_PAYEE, false);
+    mainMenu.AppendSeparator();
 
-    mainMenu->Append(new wxMenuItem(mainMenu, MENU_ORGANIZE_ATTACHMENTS, _("&Organize Attachments")));
-    if (!payee) mainMenu->Enable(MENU_ORGANIZE_ATTACHMENTS, false);
-    mainMenu->AppendSeparator();
+    mainMenu.Append(new wxMenuItem(&mainMenu, MENU_ORGANIZE_ATTACHMENTS, _("&Organize Attachments")));
+    if (!payee) mainMenu.Enable(MENU_ORGANIZE_ATTACHMENTS, false);
+    mainMenu.AppendSeparator();
 
-    mainMenu->Append(new wxMenuItem(mainMenu, MENU_RELOCATE_PAYEE, _("Relocate Payee")));
+    mainMenu.Append(new wxMenuItem(&mainMenu, MENU_RELOCATE_PAYEE, _("Relocate Payee")));
     //SetToolTip(_("Change all transactions using one Payee to another Payee"));
-    if (!payee) mainMenu->Enable(MENU_RELOCATE_PAYEE, false);
+    if (!payee) mainMenu.Enable(MENU_RELOCATE_PAYEE, false);
 
-    PopupMenu(mainMenu);
-    delete mainMenu;
+    PopupMenu(&mainMenu);
     event.Skip();
 }
 

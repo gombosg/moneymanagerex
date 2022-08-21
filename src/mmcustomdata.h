@@ -1,6 +1,7 @@
 /*******************************************************
 Copyright (C) 2017 Gabriele-V
 Copyright (C) 2018, 2021, 2022 Nikolay Akimov
+Copyright (C) 2022 Mark Whalley (mark@ipx.co.uk)
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -23,7 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "Model_Checking.h"
 
 
-class wxDatePickerCtrl;
+class mmDatePickerCtrl;
 class mmTextCtrl;
 class wxDialog;
 
@@ -40,15 +41,13 @@ public:
     const wxString GetWidgetData(wxWindowID controlID) const;
     void SetWidgetData(wxWindowID controlID, const wxString& value);
     int GetWidgetType(wxWindowID controlID) const;
+    int GetPrecision(wxWindowID controlID) const;
     size_t GetCustomFieldsCount() const;
     size_t GetActiveCustomFieldsCount() const;
     std::map<int, wxString> GetActiveCustomFields() const;
     void SetBaseID(wxWindowID id);
     wxWindowID GetBaseID() const;
-    void SetLabelID(wxWindowID id);
-    wxWindowID GetLabelID() const;
     void ResetRefID();
-    // TODO: void SetRefID(int ref_id) { m_ref_id = ref_id; }
     bool IsSomeWidgetChanged() const;
     bool IsDataFound(const Model_Checking::Full_Data &tran);
     void ResetWidgetsChanged();
@@ -73,13 +72,11 @@ private:
     void OnSingleChoice(wxCommandEvent& event);
     void OnCheckBoxChanged(wxCommandEvent& event);
     void OnCheckBoxActivated(wxCommandEvent& event);
-    void OnDoubleChanged(wxCommandEvent& event);
     void OnIntegerChanged(wxCommandEvent& event);
     bool IsWidgetChanged(wxWindowID id);
     void SetWidgetChanged(wxWindowID id, const wxString& data);
     void ResetWidgetChanged(wxWindowID id);
     wxWindowID m_init_control_id;
-    wxWindowID m_init_label_id;
 
 };
 
@@ -89,10 +86,8 @@ public:
     mmCustomDataTransaction(wxDialog* dialog, int ref_id, wxWindowID base_id);
 };
 
-inline void       mmCustomData::SetLabelID(wxWindowID id) { m_init_label_id = id; }
 inline void       mmCustomData::ResetRefID() { m_ref_id = -1; }
 inline void       mmCustomData::SetBaseID(wxWindowID id) { m_init_control_id = id; }
 inline size_t     mmCustomData::GetCustomFieldsCount() const { return m_fields.size(); }
 inline wxWindowID mmCustomData::GetBaseID() const { return m_init_control_id; }
-inline wxWindowID mmCustomData::GetLabelID() const { return m_init_label_id; }
 

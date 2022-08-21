@@ -72,6 +72,9 @@ public:
     void DatabaseUpdated(bool value);
     bool DatabaseUpdated();
 
+    void HideShareAccounts(bool value);
+    bool HideShareAccounts();
+
     void BudgetFinancialYears(bool value);
     bool BudgetFinancialYears();
 
@@ -84,8 +87,11 @@ public:
     void TransPayeeSelection(int value);
     int TransPayeeSelection();
 
-    void TransCategorySelection(int value);
-    int TransCategorySelection() const;
+    void TransCategorySelectionNonTransfer(int value);
+    int TransCategorySelectionNonTransfer() const;
+
+    void TransCategorySelectionTransfer(int value);
+    int TransCategorySelectionTransfer() const;
 
     void set_bulk_transactions(bool value);
     bool get_bulk_transactions() const;
@@ -120,7 +126,10 @@ public:
     int getHtmlFontSize();
 
     void setThemeMode(int value);
-    int getThemeMode();
+    int getThemeMode() const;
+
+    void setFontSize(int value);
+    int getFontSize() const;
 
     void setIconSize(int value);
     void setToolbarIconSize(int value);
@@ -161,6 +170,7 @@ private:
     bool m_bulk_enter;
 
     bool m_databaseUpdated;
+    bool m_hideShareAccounts;               //INIDB_HIDE_SHARE_ACCOUNTS
     bool m_budgetFinancialYears;            //INIDB_BUDGET_FINANCIAL_YEARS
     bool m_budgetIncludeTransfers;          //INIDB_BUDGET_INCLUDE_TRANSFERS
     bool m_budgetReportWithSummaries;       //INIDB_BUDGET_SUMMARY_WITHOUT_CATEG
@@ -169,7 +179,8 @@ private:
     bool m_showMoneyTips;                   //INIDB_SHOW_MONEYTIPS
 
     int m_transPayeeSelection;
-    int m_transCategorySelection;
+    int m_transCategorySelectionNonTransfer;
+    int m_transCategorySelectionTransfer;
     int m_transStatusReconciled;
     int m_transDateDefault;
     bool m_usageStatistics;
@@ -179,6 +190,7 @@ private:
     int m_theme_mode;
     int m_html_font_size;
     int m_ico_size;
+    int m_font_size;
     int m_toolbar_ico_size;
     int m_navigation_ico_size;
 
@@ -194,8 +206,11 @@ inline int Option::getToolbarIconSize() { return m_toolbar_ico_size; }
 inline const wxString Option::LocaleName() const { return m_localeNameString; }
 inline const wxString Option::UserName() const { return m_userNameString; }
 inline const wxString Option::FinancialYearStartDay() const { return m_financialYearStartDayString; }
-inline int Option::TransCategorySelection() const { return m_transCategorySelection; }
+inline int Option::TransCategorySelectionNonTransfer() const { return m_transCategorySelectionNonTransfer; }
+inline int Option::TransCategorySelectionTransfer() const { return m_transCategorySelectionTransfer; }
 inline bool Option::get_bulk_transactions() const { return m_bulk_enter; }
+inline int Option::getThemeMode() const { return m_theme_mode; }
+inline int Option::getFontSize() const { return m_font_size; }
 
 inline const wxString Option::getDateFormat() const
 {

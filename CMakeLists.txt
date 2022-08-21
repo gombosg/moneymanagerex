@@ -17,9 +17,9 @@
 # ./resources/mmex.rc
 # ---------------------------------------------------------------------------
 
-set(MMEX_VERSION 1.5.16)
+set(MMEX_VERSION 1.5.19)
 SET(MMEX_VERSION_ALPHA -1)
-SET(MMEX_VERSION_BETA 1)
+SET(MMEX_VERSION_BETA 2)
 SET(MMEX_VERSION_RC -1)
 
 # ---------------------------------------------------------------------------
@@ -290,8 +290,8 @@ set(MMEX_RES_DIR_REPORTS "${MMEX_RES_DIR}/reports")
 
 
 # --------- wxWidgets dependency ---------
-if(CMAKE_VERSION VERSION_LESS 3.16)
-    # FindwxWidgets.cmake module will be fixed in CMake 3.16
+if(CMAKE_VERSION VERSION_LESS 3.25)
+    # FindwxWidgets.cmake module will be fixed in CMake 3.25 to support later versions of wxWidgets
     list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/util")
 endif()
 set(wxWidgets_USE_REL_AND_DBG ON)
@@ -667,7 +667,7 @@ set(CPACK_DEBIAN_PACKAGE_HOMEPAGE http://www.moneymanagerex.org/)
 set(CPACK_DEBIAN_PACKAGE_REPLACES moneymanagerex)
 set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 set(CPACK_DEBIAN_PACKAGE_RELEASE 1)
-set(CPACK_DEBIAN_PACKAGE_DEPENDS wx${wxWidgets_VERSION_MAJOR}.${wxWidgets_VERSION_MINOR}-i18n)
+# set(CPACK_DEBIAN_PACKAGE_DEPENDS wx${wxWidgets_VERSION_MAJOR}.${wxWidgets_VERSION_MINOR}-i18n)
 set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
 set(CPACK_RPM_FILE_NAME RPM-DEFAULT)
 set(CPACK_RPM_PACKAGE_LICENSE GPL-2+)

@@ -44,7 +44,8 @@ Option::Option()
     , m_currencyHistoryEnabled(false)
     , m_bulk_enter(false)
     , m_transPayeeSelection(Option::NONE)
-    , m_transCategorySelection(Option::NONE)
+    , m_transCategorySelectionNonTransfer(Option::NONE)
+    , m_transCategorySelectionTransfer(Option::NONE)
     , m_transStatusReconciled(Option::NONE)
     , m_usageStatistics(true)
     , m_transDateDefault(0)
@@ -52,6 +53,7 @@ Option::Option()
     , m_theme_mode(Option::AUTO)
     , m_html_font_size(100)
     , m_ico_size(16)
+    , m_font_size(0)
     , m_toolbar_ico_size(32)
     , m_navigation_ico_size(24)
     , m_budget_days_offset(0)
@@ -94,6 +96,7 @@ void Option::LoadOptions(bool include_infotable)
 
     m_language = Option::instance().getLanguageID(true);
 
+    m_hideShareAccounts = Model_Setting::instance().GetBoolSetting(INIDB_HIDE_SHARE_ACCOUNTS, true);
     m_budgetFinancialYears = Model_Setting::instance().GetBoolSetting(INIDB_BUDGET_FINANCIAL_YEARS, false);
     m_budgetIncludeTransfers = Model_Setting::instance().GetBoolSetting(INIDB_BUDGET_INCLUDE_TRANSFERS, false);
     m_budgetReportWithSummaries = Model_Setting::instance().GetBoolSetting(INIDB_BUDGET_SUMMARY_WITHOUT_CATEG, true);
@@ -106,7 +109,8 @@ void Option::LoadOptions(bool include_infotable)
 
     // For the category selection, default behavior should remain that the last category used for the payee is selected.
     //  This is item 1 (0-indexed) in the list.
-    m_transCategorySelection = Model_Setting::instance().GetIntSetting("TRANSACTION_CATEGORY_NONE", Option::LASTUSED);
+    m_transCategorySelectionNonTransfer = Model_Setting::instance().GetIntSetting("TRANSACTION_CATEGORY_NONE", Option::LASTUSED);
+    m_transCategorySelectionTransfer = Model_Setting::instance().GetIntSetting("TRANSACTION_CATEGORY_TRANSFER_NONE", Option::LASTUSED);
     m_transStatusReconciled = Model_Setting::instance().GetIntSetting("TRANSACTION_STATUS_RECONCILED", Option::NONE);
     m_transDateDefault = Model_Setting::instance().GetIntSetting("TRANSACTION_DATE_DEFAULT", 0);
     m_usageStatistics = Model_Setting::instance().GetBoolSetting(INIDB_SEND_USAGE_STATS, true);
@@ -118,6 +122,7 @@ void Option::LoadOptions(bool include_infotable)
     m_toolbar_ico_size = Model_Setting::instance().GetIntSetting("TOOLBARICONSIZE", 32);
     m_navigation_ico_size = Model_Setting::instance().GetIntSetting("NAVIGATIONICONSIZE", 24);
     m_bulk_enter = Model_Setting::instance().GetBoolSetting("BULK_TRX", false);
+    m_font_size = Model_Setting::instance().GetIntSetting("UI_FONT_SIZE", 0);
 }
 
 void Option::setDateFormat(const wxString& date_format)
@@ -212,6 +217,17 @@ bool Option::DatabaseUpdated()
     return m_databaseUpdated;
 }
 
+void Option::HideShareAccounts(bool value)
+{
+    Model_Setting::instance().Set(INIDB_HIDE_SHARE_ACCOUNTS, value);
+    m_hideShareAccounts = value;
+}
+
+bool Option::HideShareAccounts()
+{
+    return m_hideShareAccounts;
+}
+
 void Option::BudgetFinancialYears(bool value)
 {
     Model_Setting::instance().Set(INIDB_BUDGET_FINANCIAL_YEARS, value);
@@ -276,10 +292,16 @@ int Option::TransPayeeSelection()
     return m_transPayeeSelection;
 }
 
-void Option::TransCategorySelection(int value)
+void Option::TransCategorySelectionNonTransfer(int value)
 {
     Model_Setting::instance().Set("TRANSACTION_CATEGORY_NONE", value);
-    m_transCategorySelection = value;
+    m_transCategorySelectionNonTransfer = value;
+}
+
+void Option::TransCategorySelectionTransfer(int value)
+{
+    Model_Setting::instance().Set("TRANSACTION_CATEGORY_TRANSFER_NONE", value);
+    m_transCategorySelectionTransfer = value;
 }
 
 void Option::set_bulk_transactions(bool value)
@@ -349,15 +371,16 @@ void Option::setThemeMode(int value)
     m_theme_mode = value;
 }
 
-int Option::getThemeMode()
-{
-    return m_theme_mode;
-}
-
 void Option::setHTMLFontSizes(int value)
 {
     Model_Setting::instance().Set("HTMLSCALE", value);
     m_html_font_size = value;
+}
+
+void Option::setFontSize(int value)
+{
+    Model_Setting::instance().Set("UI_FONT_SIZE", value);
+    m_font_size = value;
 }
 
 void Option::setIconSize(int value)

@@ -248,7 +248,7 @@ void mmNewAcctDialog::CreateControls()
     statement_grid_sizer->Add(m_statement_lock_ctrl, g_flagsExpand);
 
     statement_grid_sizer->Add(new wxStaticText(statement_tab, wxID_STATIC, _("Reconciled Date:")), g_flagsH);
-    m_statement_date_ctrl = new wxDatePickerCtrl(statement_tab, wxID_ANY, wxDefaultDateTime, wxDefaultPosition, wxDefaultSize, wxDP_DROPDOWN | wxDP_SHOWCENTURY);
+    m_statement_date_ctrl = new mmDatePickerCtrl(statement_tab, wxID_ANY, wxDefaultDateTime, wxDefaultPosition, wxDefaultSize, wxDP_DROPDOWN | wxDP_SHOWCENTURY);
     mmToolTip(m_statement_date_ctrl, _("The date of the transaction lock"));
     statement_grid_sizer->Add(m_statement_date_ctrl, g_flagsExpand);
 
@@ -277,7 +277,7 @@ void mmNewAcctDialog::CreateControls()
     credit_grid_sizer->Add(m_interest_rate_ctrl, g_flagsExpand);
 
     credit_grid_sizer->Add(new wxStaticText(credit_tab, wxID_STATIC, _("Payment Due Date:")), g_flagsH);
-    m_payment_due_date_ctrl = new wxDatePickerCtrl(credit_tab, wxID_ANY, wxDefaultDateTime, wxDefaultPosition, wxDefaultSize, wxDP_DROPDOWN | wxDP_SHOWCENTURY);
+    m_payment_due_date_ctrl = new mmDatePickerCtrl(credit_tab, wxID_ANY, wxDefaultDateTime, wxDefaultPosition, wxDefaultSize, wxDP_DROPDOWN | wxDP_SHOWCENTURY);
     credit_grid_sizer->Add(m_payment_due_date_ctrl, g_flagsExpand);
 
     credit_grid_sizer->Add(new wxStaticText(credit_tab, wxID_STATIC, _("Minimum Payment:")), g_flagsH);
@@ -511,7 +511,7 @@ void mmNewAcctDialog::OnOk(wxCommandEvent& /*event*/)
 
     wxTextCtrl* textCtrlWebsite = static_cast<wxTextCtrl*>(FindWindow(ID_DIALOG_NEWACCT_TEXTCTRL_WEBSITE));
     wxString uri = textCtrlWebsite->GetValue().Lower().Trim();
-    wxRegEx pattern(R"(^(https?:\/\/)?([0-9a-z_\.]+)\.([a-z]{2,6}\.?)(\/[0-9a-z_\.]*)*\/?$)");
+    wxRegEx pattern(R"(^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$)");
     if (!uri.empty() && !pattern.Matches(uri))
     {
         m_notebook->SetSelection(1);

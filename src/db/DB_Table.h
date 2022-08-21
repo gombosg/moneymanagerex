@@ -12,7 +12,7 @@
  *      @brief
  *
  *      Revision History:
- *          AUTO GENERATED at 2022-05-22 11:36:29.430935.
+ *          AUTO GENERATED at 2022-07-20 15:29:27.776453.
  *          DO NOT EDIT!
  */
 //=============================================================================
@@ -22,6 +22,7 @@
 #include <map>
 #include <algorithm>
 #include <functional>
+#include <cwchar>
 #include <wx/wxsqlite3.h>
 #include <wx/intl.h>
 
@@ -181,7 +182,7 @@ struct SorterByACCOUNTNAME
     template<class DATA>
     bool operator()(const DATA& x, const DATA& y)
     {
-        return (x.ACCOUNTNAME.CmpNoCase(y.ACCOUNTNAME) < 0);
+        return (std::wcscoll(x.ACCOUNTNAME.Lower().wc_str(),y.ACCOUNTNAME.Lower().wc_str()) < 0);  // Locale case-insensitive
     }
 };
 
@@ -325,7 +326,7 @@ struct SorterByCATEGNAME
     template<class DATA>
     bool operator()(const DATA& x, const DATA& y)
     {
-        return (x.CATEGNAME.CmpNoCase(y.CATEGNAME) < 0);
+        return (std::wcscoll(x.CATEGNAME.Lower().wc_str(),y.CATEGNAME.Lower().wc_str()) < 0);  // Locale case-insensitive
     }
 };
 
@@ -739,7 +740,7 @@ struct SorterByPAYEENAME
     template<class DATA>
     bool operator()(const DATA& x, const DATA& y)
     {
-        return (x.PAYEENAME.CmpNoCase(y.PAYEENAME) < 0);
+        return (std::wcscoll(x.PAYEENAME.Lower().wc_str(),y.PAYEENAME.Lower().wc_str()) < 0);  // Locale case-insensitive
     }
 };
 
@@ -1045,7 +1046,7 @@ struct SorterBySUBCATEGNAME
     template<class DATA>
     bool operator()(const DATA& x, const DATA& y)
     {
-        return (x.SUBCATEGNAME.CmpNoCase(y.SUBCATEGNAME) < 0);
+        return (std::wcscoll(x.SUBCATEGNAME.Lower().wc_str(),y.SUBCATEGNAME.Lower().wc_str()) < 0);  // Locale case-insensitive
     }
 };
 

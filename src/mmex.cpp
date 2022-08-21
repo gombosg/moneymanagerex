@@ -1,5 +1,6 @@
 /*******************************************************
  Copyright (C) 2006 Madhan Kanagavel
+ Copyright (C) 2022 Mark Whalley (mark@ipx.co.uk)
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -465,11 +466,30 @@ int mmGUIApp::OnExit()
 }
 
 #if defined (__WXMAC__)
-// Handle a closure for OSX dock correctly - just close the window.
+// Handle a closure for OSX dock correctly
 
+bool findModal(wxWindow *w)
+{
+    wxWindowList& children = w->GetChildren();
+    for (wxWindowList::Node *node=children.GetFirst(); node; node = node->GetNext())
+    {
+        wxWindow *current = (wxWindow *)node->GetData();
+        wxLogDebug("  Name [%s]", current->GetName());
+        if (current->IsKindOf(CLASSINFO(wxDialog)))
+            return true;
+        else
+            if (findModal(current))
+                return true;
+    }   
+    return false;
+}
 bool mmGUIApp::OSXOnShouldTerminate()
 {
     wxLogDebug("Called: OSXOnShouldTerminate");
-    this->GetTopWindow()->Close();
+
+    // Don't allow closure if dialogs are open
+    bool modalExists = findModal(GetTopWindow());
+    if (!modalExists)
+        this->GetTopWindow()->Close();
 }
 #endif

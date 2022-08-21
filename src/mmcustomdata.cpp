@@ -22,10 +22,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "constants.h"
 #include "util.h"
 #include "mmSimpleDialogs.h"
+#include "validators.h"
+#include "Model_Currency.h"
 #include "Model_CustomFieldData.h"
 #include "Model_Attachment.h"
 
-#include <wx/numformatter.h>
 #include <wx/timectrl.h>
 #include <wx/collpane.h>
 #include <wx/spinctrl.h>
@@ -59,7 +60,6 @@ mmCustomDataTransaction::mmCustomDataTransaction(wxDialog* dialog, int ref_id, w
         , ref_id)
 {
     SetBaseID(base_id);
-    SetLabelID(base_id + 100); //GetCustomFieldsCount());
 }
 
 bool mmCustomData::FillCustomFields(wxBoxSizer* box_sizer)
@@ -90,8 +90,8 @@ bool mmCustomData::FillCustomFields(wxBoxSizer* box_sizer)
             nonDefaultData = false;
         }
 
-        wxWindowID controlID = GetBaseID() + field.FIELDID;
-        wxWindowID labelID = GetLabelID() + field.FIELDID;
+        wxWindowID controlID = GetBaseID() + field.FIELDID * 2;
+        wxWindowID labelID = controlID + 1;
 
         wxCheckBox* Description = new wxCheckBox(scrolled_window
             , labelID, field.DESCRIPTION
@@ -101,7 +101,6 @@ bool mmCustomData::FillCustomFields(wxBoxSizer* box_sizer)
             , wxCommandEventHandler(mmCustomData::OnCheckBoxActivated), nullptr, this);
 
         grid_sizer_custom->Add(Description, g_flagsH);
-
 
         switch (Model_CustomField::type(field))
         {
@@ -149,24 +148,33 @@ bool mmCustomData::FillCustomFields(wxBoxSizer* box_sizer)
         }
         case Model_CustomField::DECIMAL:
         {
+            // Strip any thousands separators and make sure decimal is "."
+            // earlier implementations may have different formats so we need to cleanse
+            wxString content = fieldData->CONTENT;
+            wxRegEx pattern(R"([\., ](?=\d*[\., ]))");
+            pattern.ReplaceAll(&content, wxEmptyString);
+            content.Replace(",",".");
+
             double value;
-            if (!fieldData->CONTENT.ToDouble(&value)) {
+            int digitScale = Model_CustomField::getDigitScale(field.PROPERTIES);
+            if (!content.ToCDouble(&value)) {
                 value = 0;
             }
             else {
                 if (nonDefaultData) 
-                    SetWidgetChanged(controlID, wxString::Format("%f", value));
+                    SetWidgetChanged(controlID, Model_Currency::toString(value, NULL, digitScale));
             }
-
-            int DigitScale = Model_CustomField::getDigitScale(field.PROPERTIES);
-            wxSpinCtrlDouble* CustomDecimal = new wxSpinCtrlDouble(scrolled_window, controlID
+            
+            mmTextCtrl* CustomDecimal = new mmTextCtrl(scrolled_window, controlID
                 , wxEmptyString, wxDefaultPosition, wxDefaultSize
-                , wxSP_ARROW_KEYS, -2147483647, 2147483647, value, 1 / pow10(DigitScale));
-            CustomDecimal->SetDigits(DigitScale);
+                , wxALIGN_RIGHT | wxTE_PROCESS_ENTER, mmCalcValidator());
+            CustomDecimal->SetAltPrecision(digitScale);
+            CustomDecimal->SetValue(value, digitScale);
+            CustomDecimal->Connect(wxID_ANY, wxEVT_TEXT
+                , wxCommandEventHandler(mmCustomData::OnStringChanged), nullptr, this);
+
             mmToolTip(CustomDecimal, Model_CustomField::getTooltip(field.PROPERTIES));
             grid_sizer_custom->Add(CustomDecimal, g_flagsExpand);
-
-            CustomDecimal->Connect(controlID, wxEVT_SPINCTRLDOUBLE, wxCommandEventHandler(mmCustomData::OnDoubleChanged), nullptr, this);
 
             break;
         }
@@ -201,10 +209,9 @@ bool mmCustomData::FillCustomFields(wxBoxSizer* box_sizer)
                     SetWidgetChanged(controlID, value.FormatISODate());
             }
 
-            wxDatePickerCtrl* CustomDate = new wxDatePickerCtrl(scrolled_window, controlID
-                , value, wxDefaultPosition, wxDefaultSize, wxDP_DROPDOWN | wxDP_SHOWCENTURY);
+            mmDatePickerCtrl* CustomDate = new mmDatePickerCtrl(scrolled_window, controlID, value);
             mmToolTip(CustomDate, Model_CustomField::getTooltip(field.PROPERTIES));
-            grid_sizer_custom->Add(CustomDate, g_flagsExpand);
+            grid_sizer_custom->Add(CustomDate->mmGetLayout());
 
             CustomDate->Connect(controlID, wxEVT_DATE_CHANGED, wxDateEventHandler(mmCustomData::OnDateChanged), nullptr, this);
 
@@ -345,7 +352,7 @@ std::map<int, wxString> mmCustomData::GetActiveCustomFields() const
     std::map<int, wxString> values;
     for (const auto& entry : m_data_changed)
     {
-        int id = entry.first - GetBaseID();
+        int id = (entry.first - GetBaseID()) / 2;
         Model_CustomField::Data *item = Model_CustomField::instance().get(id);
         if (item) {
             values[item->FIELDID] = entry.second;
@@ -371,7 +378,7 @@ void mmCustomData::SetWidgetData(wxWindowID controlID, const wxString& value)
 
     if (class_name == "wxDatePickerCtrl")
     {
-        wxDatePickerCtrl* d = static_cast<wxDatePickerCtrl*>(w);
+        mmDatePickerCtrl* d = static_cast<mmDatePickerCtrl*>(w);
         wxDateTime date;
         date.ParseDate(value);
         d->SetValue(date);
@@ -386,18 +393,7 @@ void mmCustomData::SetWidgetData(wxWindowID controlID, const wxString& value)
         d->SetValue(time);
         wxDateEvent evt(d, time, wxEVT_TIME_CHANGED);
         d->GetEventHandler()->AddPendingEvent(evt);
-    }
-    else if (class_name == "wxSpinCtrlDouble")
-    {
-        wxSpinCtrlDouble* d = static_cast<wxSpinCtrlDouble*>(w);
-        double num;
-        if (value.ToDouble(&num)) {
-            d->SetValue(num);
-            wxCommandEvent evt(wxEVT_SPINCTRLDOUBLE, controlID);
-            evt.SetString(value);
-            d->GetEventHandler()->AddPendingEvent(evt);
-        }
-    }
+    }  
     else if (class_name == "wxSpinCtrl")
     {
         wxSpinCtrl* d = static_cast<wxSpinCtrl*>(w);
@@ -456,18 +452,13 @@ const wxString mmCustomData::GetWidgetData(wxWindowID controlID) const
             const wxString class_name = w->GetEventHandler()->GetClassInfo()->GetClassName();
             if (class_name == "wxDatePickerCtrl")
             {
-                wxDatePickerCtrl* d = static_cast<wxDatePickerCtrl*>(w);
+                mmDatePickerCtrl* d = static_cast<mmDatePickerCtrl*>(w);
                 data = d->GetValue().FormatISODate();
             }
             else if (class_name == "wxTimePickerCtrl")
             {
                 wxTimePickerCtrl* d = static_cast<wxTimePickerCtrl*>(w);
                 data = d->GetValue().FormatISOTime();
-            }
-            else if (class_name == "wxSpinCtrlDouble")
-            {
-                wxSpinCtrlDouble* d = static_cast<wxSpinCtrlDouble*>(w);
-                data = wxString::Format("%f", d->GetValue());
             }
             else if (class_name == "wxSpinCtrl")
             {
@@ -505,7 +496,7 @@ bool mmCustomData::SaveCustomValues(int ref_id)
 
     for (const auto &field : m_fields)
     {
-        wxWindowID controlID = GetBaseID() + field.FIELDID;
+        wxWindowID controlID = GetBaseID() + field.FIELDID * 2;
         const auto& data = IsWidgetChanged(controlID) ? GetWidgetData(controlID) : "";
 
         Model_CustomFieldData::Data* fieldData = Model_CustomFieldData::instance().get(field.FIELDID, ref_id);
@@ -542,8 +533,8 @@ void mmCustomData::UpdateCustomValues(int ref_id)
     {
         bool is_changed = false;
 
-        wxWindowID controlID = GetBaseID() + field.FIELDID;
-        auto label_id = controlID - GetBaseID() + GetLabelID();
+        wxWindowID controlID = GetBaseID() + field.FIELDID * 2;
+        auto label_id = controlID + 1;
         wxCheckBox* Description = static_cast<wxCheckBox*>(m_dialog->FindWindow(label_id));
         if (Description) {
             is_changed = Description->GetValue();
@@ -589,7 +580,7 @@ void mmCustomData::OnStringChanged(wxCommandEvent& event)
 
 void mmCustomData::ResetWidgetChanged(wxWindowID id)
 {
-    auto label_id = id - GetBaseID() + GetLabelID();
+    auto label_id = id - GetBaseID() + 1;
     wxCheckBox* check_box = static_cast<wxCheckBox*>(m_dialog->FindWindow(label_id));
     if (check_box) {
         check_box->SetValue(false);
@@ -601,7 +592,7 @@ void mmCustomData::ResetWidgetsChanged()
 {
     for (const auto& entry : m_data_changed)
     {
-        auto label_id = entry.first - GetBaseID() + GetLabelID();
+        auto label_id = entry.first - GetBaseID() + 1;
         wxCheckBox* check_box = static_cast<wxCheckBox*>(m_dialog->FindWindow(label_id));
         if (check_box) {
             check_box->SetValue(false);
@@ -616,8 +607,8 @@ void mmCustomData::ClearSettings()
 {
     for (const auto &field : m_fields)
     {
-        SetStringValue(field.FIELDID, "");
-        wxWindowID labelID = GetLabelID() + field.FIELDID;
+        SetStringValue(field.FIELDID * 2, "");
+        wxWindowID labelID = GetBaseID() + field.FIELDID * 2 + 1;
         wxCheckBox* cb = static_cast<wxCheckBox*>(FindWindowById(labelID, m_dialog));
         if (cb)
             cb->SetValue(false);
@@ -627,12 +618,6 @@ void mmCustomData::ClearSettings()
 void mmCustomData::OnSingleChoice(wxCommandEvent& event)
 {
     const wxString& data = event.GetString();
-    SetWidgetChanged(event.GetId(), data);
-}
-
-void mmCustomData::OnDoubleChanged(wxCommandEvent& event)
-{
-    const auto& data = event.GetString();
     SetWidgetChanged(event.GetId(), data);
 }
 
@@ -651,7 +636,7 @@ void mmCustomData::OnCheckBoxChanged(wxCommandEvent& event)
 int mmCustomData::GetWidgetType(wxWindowID controlID) const
 {
     Model_CustomField::Data_Set fields = Model_CustomField::instance().find(Model_CustomField::DB_Table_CUSTOMFIELD_V1::REFTYPE(m_ref_type));
-    int control_id = controlID - GetBaseID();
+    int control_id = (controlID - GetBaseID()) / 2;
     for (const auto& entry : fields)
     {
         if (entry.FIELDID == control_id)
@@ -661,13 +646,22 @@ int mmCustomData::GetWidgetType(wxWindowID controlID) const
     }
     wxFAIL_MSG("unknown custom field type");
     return -1;
+}
 
+int mmCustomData::GetPrecision(wxWindowID controlID) const
+{
+    int control_id = (controlID - GetBaseID()) / 2;
+    for (const auto &field : m_fields)
+        if (field.FIELDID == control_id)
+            return (Model_CustomField::getDigitScale(field.PROPERTIES));
+    wxFAIL_MSG("No field found");
+    return -1;
 }
 
 void mmCustomData::OnCheckBoxActivated(wxCommandEvent& event)
 {
     auto id = event.GetId();
-    auto widget_id = id - GetLabelID() + GetBaseID();
+    auto widget_id = id - 1;
     auto checked = event.IsChecked();
 
     if (checked) {
@@ -678,13 +672,13 @@ void mmCustomData::OnCheckBoxActivated(wxCommandEvent& event)
     else {
         this->ResetWidgetChanged(widget_id);
     }
-
 }
 
 void mmCustomData::OnDateChanged(wxDateEvent& event)
 {
     const auto data = event.GetDate();
     SetWidgetChanged(event.GetId(), data.FormatISODate());
+    event.Skip();
 }
 
 void mmCustomData::OnTimeChanged(wxDateEvent& event)
@@ -713,7 +707,7 @@ void mmCustomData::SetWidgetChanged(wxWindowID id, const wxString& data)
 {
     m_data_changed[id] = data;
 
-    auto label_id = id - GetBaseID() + GetLabelID();
+    auto label_id = id + 1;
     wxCheckBox* check_box = static_cast<wxCheckBox*>(m_dialog->FindWindow(label_id));
     if (check_box) {
         check_box->SetValue(true);
@@ -770,7 +764,9 @@ bool mmCustomData::ValidateCustomValues(int ref_id)
     bool is_valid = true;
     for (const auto &field : m_fields)
     {
-        wxWindowID labelID = GetLabelID() + field.FIELDID;
+        wxWindowID controlID = GetBaseID() + field.FIELDID * 2;
+        wxWindowID labelID = controlID + 1;
+
         wxCheckBox* cb = static_cast<wxCheckBox*>(FindWindowById(labelID, m_dialog));
         if (!cb || !cb->GetValue())
             continue;
@@ -778,7 +774,6 @@ bool mmCustomData::ValidateCustomValues(int ref_id)
         const wxString regExStr = Model_CustomField::getRegEx(field.PROPERTIES);
         if (!regExStr.empty())
         {
-            wxWindowID controlID = GetBaseID() + field.FIELDID;
             const auto& data = GetWidgetData(controlID);
             wxRegEx regEx(regExStr, wxRE_EXTENDED);
 
@@ -792,8 +787,22 @@ bool mmCustomData::ValidateCustomValues(int ref_id)
                 continue;
             }
         }
+
+        if (GetWidgetType(controlID) == Model_CustomField::DECIMAL)
+        {
+            wxWindow* w = FindWindowById(controlID, m_dialog);
+            if (w)
+            {
+                mmTextCtrl* d = static_cast<mmTextCtrl*>(w);
+                double value;
+                if (d->checkValue(value, false))
+                    SetWidgetChanged(controlID, Model_Currency::toString(value, NULL
+                                                , Model_CustomField::getDigitScale(field.PROPERTIES)));
+                else
+                    is_valid = false;
+            }
+        }
     }
 
     return is_valid;
 }
-

@@ -97,7 +97,8 @@ table {
 )";
 
     hb.init(false, extra_style);
-    hb.addReportHeader(getReportTitle(), 
+    wxString label = m_transDialog->mmGetLabelString();
+     hb.addReportHeader(wxString::Format("%s %s%s", getReportTitle(), !label.IsEmpty() ? ": " : "", label), 
             ((m_transDialog->mmIsRangeChecked()) ? m_transDialog->mmGetStartDay() : 1),
             ((m_transDialog->mmIsRangeChecked()) ? m_transDialog->mmIsFutureIgnored() : false ));
     wxDateTime start,end;
@@ -227,7 +228,11 @@ table {
                     if (noOfTrans || (!allAccounts && (selected_accounts.Index(transaction.ACCOUNTID) == wxNOT_FOUND)))
                         amount = -amount;
                     const double convRate = Model_CurrencyHistory::getDayRate(curr->CURRENCYID, transaction.TRANSDATE);
-                    if (showColumnById(9)) hb.addCurrencyCell(amount, curr);
+                    if (showColumnById(9)) 
+                        if (Model_Checking::status(transaction.STATUS) == Model_Checking::VOID_)
+                            hb.addCurrencyCell(Model_Checking::amount(transaction, acc->ACCOUNTID), curr, -1, true);                            
+                        else 
+                            hb.addCurrencyCell(amount, curr);
                     total[curr->CURRENCYID] += amount;
                     grand_total[curr->CURRENCYID] += amount;
                     total_in_base_curr[curr->CURRENCYID] += amount * convRate;
@@ -387,14 +392,15 @@ void mmReportTransactions::Run(wxSharedPtr<mmFilterTransactionsDialog>& dlg)
         Model_Checking::Full_Data full_tran(tran, splits);
 
         full_tran.PAYEENAME = full_tran.real_payee_name(full_tran.ACCOUNTID);
-        if (dlg.get()->mmIsCategoryChecked() && full_tran.has_split()) 
+        if (full_tran.has_split())
         {
+            bool catFilter = dlg.get()->mmIsCategorySubCatChecked();
             const auto& value = dlg.get()->mmGetCategoryPattern();
             wxRegEx pattern("^(" + value + ")$", wxRE_ICASE | wxRE_ADVANCED);
 
             for (const auto& split : full_tran.m_splits)
             {
-                const auto& categ = Model_Category::full_name(split.CATEGID, split.SUBCATEGID);
+                const auto& categ = Model_Category::full_name(split.CATEGID, (!catFilter ? split.SUBCATEGID : -1));
 
                 if (pattern.Matches(categ)) {
                     full_tran.CATEGNAME = Model_Category::full_name(split.CATEGID, split.SUBCATEGID);
@@ -402,10 +408,11 @@ void mmReportTransactions::Run(wxSharedPtr<mmFilterTransactionsDialog>& dlg)
                     trans_.push_back(full_tran);
                 }
             }
-        } else
+        }
+        else
             trans_.push_back(full_tran);
     }
-    
+
     std::stable_sort(trans_.begin(), trans_.end(), SorterByTRANSDATE());
     switch (dlg.get()->mmGetGroupBy())
     {

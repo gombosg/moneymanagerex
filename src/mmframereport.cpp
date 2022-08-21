@@ -4,6 +4,7 @@
  Copyright (C) 2013 - 2022 Nikolay Akimov
  Copyright (C) 2014 James Higley
  Copyright (C) 2014 Guan Lisheng (guanlisheng@gmail.com)
+ Copyright (C) 2022 Mark Whalley (mark@ipx.co.uk)
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -127,6 +128,9 @@ void mmGUIFrame::DoUpdateReportNavigation(wxTreeItemId& parent_item)
 
         wxTreeItemId cashflowWithTermAccounts = m_nav_tree_ctrl->AppendItem(cashFlow, _("Monthly"), img::PIECHART_PNG, img::PIECHART_PNG);
         m_nav_tree_ctrl->SetItemData(cashflowWithTermAccounts, new mmTreeItemData("Cash Flow - Monthly", new mmReportCashFlowMonthly()));
+
+        wxTreeItemId cashflowWithTransactions = m_nav_tree_ctrl->AppendItem(cashFlow, _("Transactions"), img::PIECHART_PNG, img::PIECHART_PNG);
+        m_nav_tree_ctrl->SetItemData(cashflowWithTransactions, new mmTreeItemData("Cash Flow - Transactions", new mmReportCashFlowTransactions()));
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -308,19 +312,9 @@ void mmGUIFrame::mmDoHideReportsDialog()
         }
     }
 
-    wxMultiChoiceDialog reports(this, _("Hide")
-        , _("Reports"), reports_name_i10n);
+    mmMultiChoiceDialog reports(this, _("Hide"), _("Reports"), reports_name_i10n);
     reports.SetSelections(hidden_reports);
-    reports.SetMinSize(wxSize(220, 384));
-    reports.SetIcon(mmex::getProgramIcon());
-    reports.SetHelpText("test");
 
-    wxButton* ok = static_cast<wxButton*>(reports.FindWindow(wxID_OK));
-    if (ok) ok->SetLabel(_("&OK "));
-    wxButton* ca = static_cast<wxButton*>(reports.FindWindow(wxID_CANCEL));
-    if (ca) ca->SetLabel(wxGetTranslation(g_CancelLabel));
-
-    reports.Fit();
     if (reports.ShowModal() == wxID_OK)
     {
         Model_Infotable::instance().Set("HIDDEN_REPORTS", "[]");

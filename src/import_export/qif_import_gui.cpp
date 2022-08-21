@@ -80,6 +80,7 @@ mmQIFImportDialog::mmQIFImportDialog(wxWindow* parent, int account_id)
     if (acc)
         m_accountNameStr = acc->ACCOUNTNAME;
 
+    this->SetFont(parent->GetFont());
     Create(parent);
     SetMinSize(wxSize(500, 300));
 }
@@ -199,7 +200,7 @@ void mmQIFImportDialog::CreateControls()
     // From Date
     dateFromCheckBox_ = new wxCheckBox(static_box, wxID_FILE8, _("From Date")
         , wxDefaultPosition, wxDefaultSize, wxCHK_2STATE);
-    fromDateCtrl_ = new wxDatePickerCtrl(static_box, wxID_STATIC, wxDefaultDateTime
+    fromDateCtrl_ = new mmDatePickerCtrl(static_box, wxID_STATIC, wxDefaultDateTime
         , wxDefaultPosition, wxDefaultSize, wxDP_DROPDOWN);
     fromDateCtrl_->SetMinSize(wxSize(150, -1));
     fromDateCtrl_->Enable(false);
@@ -209,7 +210,7 @@ void mmQIFImportDialog::CreateControls()
     // To Date
     dateToCheckBox_ = new wxCheckBox(static_box, wxID_FILE9, _("To Date")
         , wxDefaultPosition, wxDefaultSize, wxCHK_2STATE);
-    toDateCtrl_ = new wxDatePickerCtrl(static_box, wxID_STATIC, wxDefaultDateTime
+    toDateCtrl_ = new mmDatePickerCtrl(static_box, wxID_STATIC, wxDefaultDateTime
         , wxDefaultPosition, wxSize(150, -1), wxDP_DROPDOWN);
     toDateCtrl_->Enable(false);
     flex_sizer2->Add(dateToCheckBox_, g_flagsH);

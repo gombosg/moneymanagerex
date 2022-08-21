@@ -2,6 +2,7 @@
  Copyright (C) 2006 Madhan Kanagavel
  Copyright (C) 2011-2017 Nikolay Akimov
  Copyright (C) 2011-2017 Stefano Giorgio [stef145g]
+ Copyright (C) 2022 Mark Whalley (mark@ipx.co.uk)
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -30,9 +31,6 @@
 #include "Model_CustomFieldData.h"
 #include "Model_Splittransaction.h"
 
-#include <wx/spinbutt.h>
-
-class wxDatePickerCtrl;
 class mmTextCtrl;
 class wxString;
 class mmCustomData;
@@ -89,12 +87,10 @@ private:
     void OnFrequentUsedNotes(wxCommandEvent& event);
     void OnNoteSelected(wxCommandEvent& event);
     void OnTransTypeChanged(wxCommandEvent& event);
-    void OnTransDateSpin(wxSpinEvent&);
-    void OnDateChanged(wxDateEvent& event);
+    void OnPayeeChanged(wxCommandEvent& event);
     void OnFocusChange(wxChildFocusEvent& event);
     void OnTextEntered(wxCommandEvent& event);
     void OnAdvanceChecked(wxCommandEvent& event);
-    void ActivateSplitTransactionsDlg();
     void SetTooltips();
     void SetCategoryForPayee(const Model_Payee::Data *payee = nullptr);
 private:
@@ -102,12 +98,10 @@ private:
     mmTextCtrl* m_textAmount;
     mmTextCtrl* toTextAmount_;
     wxTextCtrl* textNotes_;
-    wxStaticText* categ_label_;
-    wxStaticText* categ_label2_;
-    wxButton* bCategory_;
     wxButton* bAttachments_;
     mmColorButton* bColours_;
     wxStaticText* account_label_;
+    wxStaticText* categ_label_;
     mmComboBoxAccount* cbAccount_;
     wxStaticText* to_acc_label_;
     mmComboBoxAccount* cbToAccount_;
@@ -119,13 +113,11 @@ private:
     wxButton* m_button_cancel;
     wxChoice* choiceStatus_;
     wxChoice* transaction_type_;
-    wxDatePickerCtrl* dpc_;
-    wxStaticText* itemStaticTextWeek_;
+    mmDatePickerCtrl* dpc_;
 
     bool m_transfer;
     bool m_new_trx;
     bool m_duplicate;
-    bool categUpdated_;
     bool m_advanced;
     double m_current_balance;
 
@@ -135,8 +127,6 @@ private:
 
     DB_Table_CHECKINGACCOUNT_V1::Data m_trx_data;
     std::vector<Split> m_local_splits;
-    Model_Currency::Data *m_currency;
-    Model_Currency::Data *m_to_currency;
 
     std::vector<wxString> frequentNotes_;
 
@@ -165,7 +155,6 @@ private:
         ID_DIALOG_TRANS_ADVANCED_CHECKBOX,
         ID_DIALOG_TRANS_ADVANCED_FROM,
         ID_DIALOG_TRANS_ADVANCED_TO,
-        ID_DIALOG_TRANS_CATEGLABEL1,
         ID_DIALOG_TRANS_CATEGLABEL2,
         ID_DIALOG_TRANS_BUTTONTRANSNUM,
         mmID_TOACCOUNT_LABEL,
@@ -176,7 +165,6 @@ private:
         mmID_CATEGORY_SPLIT,
         mmID_ACCOUNTNAME,
         ID_DIALOG_TRANS_BUTTON_FREQENTNOTES,
-        ID_DIALOG_TRANS_DATE_SPINNER,
         ID_DIALOG_TRANS_CUSTOMFIELDS,
         ID_CUSTOMFIELD,
     };

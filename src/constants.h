@@ -119,6 +119,7 @@ extern const wxString INIDB_USE_ORG_DATE_DUPLICATE;
 extern const wxString INIDB_SEND_USAGE_STATS;
 extern const wxString INIDB_CHECK_NEWS;
 
+extern const wxString INIDB_HIDE_SHARE_ACCOUNTS;
 extern const wxString INIDB_BUDGET_FINANCIAL_YEARS;
 extern const wxString INIDB_BUDGET_INCLUDE_TRANSFERS;
 extern const wxString INIDB_BUDGET_SUMMARY_WITHOUT_CATEG;
@@ -145,8 +146,13 @@ enum id
     mmID_BUDGET,
     mmID_REPORTS,
     mmID_CHECKING,
+    mmID_CATEGORY,
+    mmID_PAYEE,
+    mmID_SPLIT,
     mmID_ALLTRANSACTIONS,
     mmID_BROWSER,
+    mmID_REMOVE,
+    mmID_COLOR,
     MENU_REPORT_BUG,
     MENU_BILLSDEPOSITS,
     MENU_STOCKS,
@@ -159,7 +165,7 @@ enum id
     MENU_VIEW_SHOW_TOOLTIPS,
     MENU_VIEW_SHOW_MONEYTIPS,
     MENU_VIEW_TOGGLE_FULLSCREEN,
-    ID_MMEX_MAX,
+    mmID_MAX,
 
 };
 

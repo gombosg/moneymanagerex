@@ -153,7 +153,7 @@ void mmQIFExportDialog::CreateControls()
     // From Date --------------------------------------------
     dateFromCheckBox_ = new wxCheckBox(main_tab, wxID_ANY, _("From Date")
         , wxDefaultPosition, wxDefaultSize, wxCHK_2STATE );
-    fromDateCtrl_ = new wxDatePickerCtrl(main_tab, wxID_STATIC, wxDefaultDateTime
+    fromDateCtrl_ = new mmDatePickerCtrl(main_tab, wxID_STATIC, wxDefaultDateTime
         , wxDefaultPosition, wxDefaultSize, wxDP_DROPDOWN);
     fromDateCtrl_->SetMinSize(min_size);
     fromDateCtrl_->Enable(false);
@@ -163,7 +163,7 @@ void mmQIFExportDialog::CreateControls()
     // To Date --------------------------------------------
     dateToCheckBox_ = new wxCheckBox(main_tab, wxID_ANY, _("To Date")
         , wxDefaultPosition, wxDefaultSize, wxCHK_2STATE );
-    toDateCtrl_ = new wxDatePickerCtrl(main_tab, wxID_STATIC, wxDefaultDateTime
+    toDateCtrl_ = new mmDatePickerCtrl(main_tab, wxID_STATIC, wxDefaultDateTime
         , wxDefaultPosition, wxDefaultSize, wxDP_DROPDOWN);
     toDateCtrl_->SetMinSize(min_size);
     toDateCtrl_->Enable(false);
@@ -247,12 +247,9 @@ void mmQIFExportDialog::OnAccountsButton(wxCommandEvent& WXUNUSED(event))
 {
     selected_accounts_id_.clear();
     bSelectedAccounts_->UnsetToolTip();
-    wxMultiChoiceDialog s_acc(this, _("Choose Account to Export from:")
+    mmMultiChoiceDialog s_acc(this, _("Choose Account to Export from:")
         , _("QIF Export"), m_accounts_name);
-    wxButton* ok = static_cast<wxButton*>(s_acc.FindWindow(wxID_OK));
-    if (ok) ok->SetLabel(_("&OK "));
-    wxButton* ca = static_cast<wxButton*>(s_acc.FindWindow(wxID_CANCEL));
-    if (ca) ca->SetLabel(wxGetTranslation(g_CancelLabel));
+
 
     wxString baloon = "";
     wxArrayInt selected_items;
